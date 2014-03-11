@@ -51,9 +51,9 @@ class EtcdAdapter extends AbstractAdapter
     public function get($key)
     {
         $this->initCurl();
-        curl_setopt($this->curl, CURLOPT_URL, $this->generateUrl($key));
-        curl_setopt($this->curl, CURLOPT_HTTPGET, true);
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
+        $this->setoptCurl(CURLOPT_HTTPGET, true);
+        $this->setoptCurl(CURLOPT_RETURNTRANSFER, true);
         $response = json_decode(curl_exec($this->curl));
         $this->closeCurl();
 
@@ -82,10 +82,10 @@ class EtcdAdapter extends AbstractAdapter
         $put = "value={$data}&ttl={$this->getExpiry()}";
 
         $this->initCurl();
-        curl_setopt($this->curl, CURLOPT_URL, $this->generateUrl($key));
-        curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_setopt($this->curl, CURLOPT_POSTFIELDS, $put);
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
+        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT");
+        $this->setoptCurl(CURLOPT_POSTFIELDS, $put);
+        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -100,9 +100,9 @@ class EtcdAdapter extends AbstractAdapter
     public function delete($key)
     {
         $this->initCurl();
-        curl_setopt($this->curl, CURLOPT_URL, $this->generateUrl($key));
-        curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
+        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "DELETE");
+        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -117,10 +117,10 @@ class EtcdAdapter extends AbstractAdapter
     public function persist($key, $value)
     {
         $this->initCurl();
-        curl_setopt($this->curl, CURLOPT_URL, $this->generateUrl($key));
-        curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_setopt($this->curl, CURLOPT_POSTFIELDS, ['value' => $value]);
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
+        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT");
+        $this->setoptCurl(CURLOPT_POSTFIELDS, ['value' => $value]);
+        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -139,10 +139,10 @@ class EtcdAdapter extends AbstractAdapter
         $put = "value={$data}&ttl={$this->getExpiry()}";
 
         $this->initCurl();
-        curl_setopt($this->curl, CURLOPT_URL, $this->generateUrl($key));
-        curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_setopt($this->curl, CURLOPT_POSTFIELDS, $put);
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
+        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT");
+        $this->setoptCurl(CURLOPT_POSTFIELDS, $put);
+        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -156,15 +156,15 @@ class EtcdAdapter extends AbstractAdapter
      */
     public function decrement($key, $offset = 1)
     {
-        $data = (int) $this->get($key) - $offset;
+        $data = $this->get($key) - $offset;
 
         $put = "value={$data}&ttl={$this->getExpiry()}";
 
         $this->initCurl();
-        curl_setopt($this->curl, CURLOPT_URL, $this->generateUrl($key));
-        curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_setopt($this->curl, CURLOPT_POSTFIELDS, $put);
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
+        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT");
+        $this->setoptCurl(CURLOPT_POSTFIELDS, $put);
+        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -179,13 +179,9 @@ class EtcdAdapter extends AbstractAdapter
     public function flush()
     {
         $this->initCurl();
-        curl_setopt(
-            $this->curl,
-            CURLOPT_URL,
-            $this->generateUrl('?recursive=true')
-        );
-        curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl('?recursive=true'));
+        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "DELETE");
+        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -223,6 +219,20 @@ class EtcdAdapter extends AbstractAdapter
     }
 
     /**
+     * Runs curl_setopt
+     *
+     * @param int $option
+     * @param string $value
+     * @return \Orno\Cache\Adapter\EtcdAdapter
+     */
+    protected function setoptCurl($option, $value)
+    {
+        curl_setopt($this->curl, $option, $value);
+
+        return $this;
+    }
+
+    /**
      * Close the curl connection
      *
      * @return \Orno\Cache\Adapter\EtcdAdapter
@@ -242,7 +252,6 @@ class EtcdAdapter extends AbstractAdapter
      */
     protected function generateUrl($key)
     {
-        return "{$this->url}:{$this->port}/v2/keys/{$key}";
+        return sprintf("%s:%s/v2/keys/%s", $this->url, $this->port, $key);
     }
-
 }
