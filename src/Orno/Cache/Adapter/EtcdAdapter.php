@@ -10,6 +10,12 @@ namespace Orno\Cache\Adapter;
 /**
  * EtcdAdapter
  *
+ * Etcd:
+ * A highly-available key value store for shared configuration and service discovery.
+ * Etcd is written in Go and uses the Raft consensus algorithm to manage a highly-available replicated log
+ *
+ * https://github.com/coreos/etcd
+ *
  * @author Michael Bardsley <me@mic-b.co.uk>
  */
 class EtcdAdapter extends AbstractAdapter
