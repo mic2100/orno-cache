@@ -57,9 +57,9 @@ class EtcdAdapter extends AbstractAdapter
     public function get($key)
     {
         $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
-        $this->setoptCurl(CURLOPT_HTTPGET, true);
-        $this->setoptCurl(CURLOPT_RETURNTRANSFER, true);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
+             ->setoptCurl(CURLOPT_HTTPGET, true)
+             ->setoptCurl(CURLOPT_RETURNTRANSFER, true);
         $response = json_decode(curl_exec($this->curl));
         $this->closeCurl();
 
@@ -88,10 +88,10 @@ class EtcdAdapter extends AbstractAdapter
         $put = "value={$data}&ttl={$this->getExpiry()}";
 
         $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
-        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT");
-        $this->setoptCurl(CURLOPT_POSTFIELDS, $put);
-        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
+             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT")
+             ->setoptCurl(CURLOPT_POSTFIELDS, $put)
+             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -106,9 +106,9 @@ class EtcdAdapter extends AbstractAdapter
     public function delete($key)
     {
         $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
-        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "DELETE");
-        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
+             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "DELETE")
+             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -123,10 +123,10 @@ class EtcdAdapter extends AbstractAdapter
     public function persist($key, $value)
     {
         $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
-        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT");
-        $this->setoptCurl(CURLOPT_POSTFIELDS, ['value' => $value]);
-        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
+             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT")
+             ->setoptCurl(CURLOPT_POSTFIELDS, ['value' => $value])
+             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -145,10 +145,10 @@ class EtcdAdapter extends AbstractAdapter
         $put = "value={$data}&ttl={$this->getExpiry()}";
 
         $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
-        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT");
-        $this->setoptCurl(CURLOPT_POSTFIELDS, $put);
-        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
+             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT")
+             ->setoptCurl(CURLOPT_POSTFIELDS, $put)
+             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -167,10 +167,10 @@ class EtcdAdapter extends AbstractAdapter
         $put = "value={$data}&ttl={$this->getExpiry()}";
 
         $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key));
-        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT");
-        $this->setoptCurl(CURLOPT_POSTFIELDS, $put);
-        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
+             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT")
+             ->setoptCurl(CURLOPT_POSTFIELDS, $put)
+             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
@@ -185,9 +185,9 @@ class EtcdAdapter extends AbstractAdapter
     public function flush()
     {
         $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl('?recursive=true'));
-        $this->setoptCurl(CURLOPT_CUSTOMREQUEST, "DELETE");
-        $this->setoptCurl(CURLOPT_RETURNTRANSFER, false);
+        $this->setoptCurl(CURLOPT_URL, $this->generateUrl('?recursive=true'))
+             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "DELETE")
+             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
         curl_exec($this->curl);
         $this->closeCurl();
 
