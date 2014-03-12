@@ -7,6 +7,9 @@
  */
 namespace Orno\Cache\Adapter;
 
+use Guzzle\Http\Client;
+use Guzzle\Http\Exception\ClientErrorResponseException;
+
 /**
  * Etcd:
  * A highly-available key value store for shared configuration and service discovery.
@@ -23,16 +26,16 @@ namespace Orno\Cache\Adapter;
 class EtcdAdapter extends AbstractAdapter
 {
     /**
-     * @var Curl
+     * @var \Guzzle\Http\Client
      */
-    protected $curl;
+    protected $client;
 
     /**
-     * The IP/URL of the etcd server
+     * The host of the etcd server
      *
      * @var string
      */
-    protected $url = 'http://127.0.0.1';
+    protected $host = 'http://127.0.0.1';
 
     /**
      * The port number of the etcd server
@@ -49,8 +52,11 @@ class EtcdAdapter extends AbstractAdapter
     public function __construct(array $config)
     {
         $this->setConfig($config);
-
-        $this->initCurl();
+        $this->client = new Client(
+            $this->generateHost(),
+            [],
+            ['exceptions' => false]
+        );
     }
 
     /**
@@ -58,18 +64,19 @@ class EtcdAdapter extends AbstractAdapter
      */
     public function get($key)
     {
-        $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
-             ->setoptCurl(CURLOPT_HTTPGET, true)
-             ->setoptCurl(CURLOPT_RETURNTRANSFER, true);
-        $response = json_decode(curl_exec($this->curl));
-        $this->closeCurl();
-
-        if (is_null($response) || ! isset($response->node)) {
+        try {
+            $request = $this->client->get($this->generatePath($key));
+            $response = $request->send();
+            $array = $response->json();
+        } catch(ClientErrorResponseException $e) {
             return false;
         }
 
-        return $response->node->value;
+        if (empty($array) || ! isset($array['node']['value'])) {
+            return false;
+        }
+
+        return $array['node']['value'];
     }
 
     /**
@@ -87,15 +94,15 @@ class EtcdAdapter extends AbstractAdapter
             $expiry = $this->convertExpiryString($expiry);
         }
 
-        $put = "value={$data}&ttl={$this->getExpiry()}";
-
-        $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
-             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT")
-             ->setoptCurl(CURLOPT_POSTFIELDS, $put)
-             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
-        curl_exec($this->curl);
-        $this->closeCurl();
+        $request = $this->client->put(
+            $this->generatePath($key),
+            null,
+            [
+                'value' => $data,
+                'ttl' => $this->getExpiry(),
+            ]
+        );
+        $request->send();
 
         return $this;
     }
@@ -107,12 +114,8 @@ class EtcdAdapter extends AbstractAdapter
      */
     public function delete($key)
     {
-        $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
-             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "DELETE")
-             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
-        curl_exec($this->curl);
-        $this->closeCurl();
+        $request = $this->client->delete($this->generatePath($key));
+        $request->send();
 
         return $this;
     }
@@ -124,13 +127,12 @@ class EtcdAdapter extends AbstractAdapter
      */
     public function persist($key, $value)
     {
-        $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
-             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT")
-             ->setoptCurl(CURLOPT_POSTFIELDS, ['value' => $value])
-             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
-        curl_exec($this->curl);
-        $this->closeCurl();
+        $request = $this->client->put(
+            $this->generatePath($key),
+            null,
+            ['value' => $data]
+        );
+        $request->send();
 
         return $this;
     }
@@ -143,16 +145,7 @@ class EtcdAdapter extends AbstractAdapter
     public function increment($key, $offset = 1)
     {
         $data = (int) $this->get($key) + $offset;
-
-        $put = "value={$data}&ttl={$this->getExpiry()}";
-
-        $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
-             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT")
-             ->setoptCurl(CURLOPT_POSTFIELDS, $put)
-             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
-        curl_exec($this->curl);
-        $this->closeCurl();
+        $this->set($key, $data);
 
         return $this;
     }
@@ -165,16 +158,7 @@ class EtcdAdapter extends AbstractAdapter
     public function decrement($key, $offset = 1)
     {
         $data = $this->get($key) - $offset;
-
-        $put = "value={$data}&ttl={$this->getExpiry()}";
-
-        $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl($key))
-             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "PUT")
-             ->setoptCurl(CURLOPT_POSTFIELDS, $put)
-             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
-        curl_exec($this->curl);
-        $this->closeCurl();
+        $this->set($key, $data);
 
         return $this;
     }
@@ -186,12 +170,8 @@ class EtcdAdapter extends AbstractAdapter
      */
     public function flush()
     {
-        $this->initCurl();
-        $this->setoptCurl(CURLOPT_URL, $this->generateUrl('?recursive=true'))
-             ->setoptCurl(CURLOPT_CUSTOMREQUEST, "DELETE")
-             ->setoptCurl(CURLOPT_RETURNTRANSFER, false);
-        curl_exec($this->curl);
-        $this->closeCurl();
+        $request = $this->client->delete($this->generatePath('?recursive=true'));
+        $request->send();
 
         return $this;
     }
@@ -203,8 +183,8 @@ class EtcdAdapter extends AbstractAdapter
      */
     public function setConfig(array $config)
     {
-        if (array_key_exists('url', $config)) {
-            $this->url = $config['url'];
+        if (array_key_exists('host', $config)) {
+            $this->url = $config['host'];
         }
 
         if (array_key_exists('expiry', $config)) {
@@ -253,13 +233,23 @@ class EtcdAdapter extends AbstractAdapter
     }
 
     /**
-     * Generates the etcd url with embeded key
+     * Generates the etcd path with embeded key
      *
      * @param string $key
      * @return string
      */
-    protected function generateUrl($key)
+    protected function generatePath($key)
     {
-        return sprintf("%s:%s/v2/keys/%s", $this->url, $this->port, $key);
+        return sprintf("/v2/keys/%s", $key);
+    }
+
+    /**
+     * Generates the etcd urn with embeded key
+     *
+     * @return string
+     */
+    protected function generateHost()
+    {
+        return sprintf("%s:%s", $this->host, $this->port);
     }
 }
