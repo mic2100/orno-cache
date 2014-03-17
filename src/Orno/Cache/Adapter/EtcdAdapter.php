@@ -125,7 +125,7 @@ class EtcdAdapter extends AbstractAdapter
      *
      * @return \Orno\Cache\Adapter\EtcdAdapter
      */
-    public function persist($key, $value)
+    public function persist($key, $data)
     {
         $request = $this->client->put(
             $this->generatePath($key),
