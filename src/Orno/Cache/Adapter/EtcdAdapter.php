@@ -195,44 +195,6 @@ class EtcdAdapter extends AbstractAdapter
     }
 
     /**
-     * Initialize the curl library
-     *
-     * @return \Orno\Cache\Adapter\EtcdAdapter
-     */
-    protected function initCurl()
-    {
-        $this->curl = curl_init();
-
-        return $this;
-    }
-
-    /**
-     * Runs curl_setopt
-     *
-     * @param int $option
-     * @param string $value
-     * @return \Orno\Cache\Adapter\EtcdAdapter
-     */
-    protected function setoptCurl($option, $value)
-    {
-        curl_setopt($this->curl, $option, $value);
-
-        return $this;
-    }
-
-    /**
-     * Close the curl connection
-     *
-     * @return \Orno\Cache\Adapter\EtcdAdapter
-     */
-    protected function closeCurl()
-    {
-        curl_close($this->curl);
-
-        return $this;
-    }
-
-    /**
      * Generates the etcd path with embeded key
      *
      * @param string $key
@@ -244,7 +206,7 @@ class EtcdAdapter extends AbstractAdapter
     }
 
     /**
-     * Generates the etcd urn with embeded key
+     * Generates the etcd url with embeded key
      *
      * @return string
      */
