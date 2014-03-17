@@ -10,10 +10,6 @@ class EtcdAdapterTest extends \PHPUnit_Framework_Testcase
 
     public function setUp()
     {
-        if (! extension_loaded('curl')) {
-            $this->markTestSkipped('The curl extension is not loaded and therefore the etcd adapter cannot be integration tested');
-        }
-
         $this->adapter = new EtcdAdapter([]);
     }
 
