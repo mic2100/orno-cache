@@ -43,7 +43,7 @@ class Manager implements PoolInterface
      */
     public function getItem($key)
     {
-        if (! is_string($key)) {
+        if (! preg_match("/^[A-Za-z0-9\_\.\-]+$/", $key)) {
             throw new InvalidArgumentException("Invalid item key");
         }
         return new Item($key, $this->adapter);
