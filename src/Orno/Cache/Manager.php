@@ -8,8 +8,9 @@
 namespace Orno\Cache;
 
 use Psr\Cache\PoolInterface;
-use Psr\Cache\InvalidArgumentException;
 use Orno\Cache\Item;
+use Orno\Cache\Collection;
+use Orno\Cache\Exception\InvalidArgumentException;
 
 /**
  * Manager
@@ -37,22 +38,30 @@ class Manager implements PoolInterface
      * {@inheritdoc}
      *
      * @param string $key
+     * @return \Psr\Cache\ItemInterface
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function getItem($key)
     {
-        return new Item($key);
+        if (! is_string($key)) {
+            throw new InvalidArgumentException("Invalid item key");
+        }
+        return new Item($key, $this->adapter);
     }
 
     /**
      * {@inheritdoc}
      *
      * @param array $keys
+     * @return \Psr\Cache\Collection
      */
     public function getItems(array $keys = array())
     {
+        $collection = new Collection;
         foreach ($keys as $key) {
-
+            $collection[$key] = $this->getItem($key);
         }
+        return $collection;
     }
 
     /**
@@ -60,7 +69,7 @@ class Manager implements PoolInterface
      */
     public function clear()
     {
-
+        return $this->adapter->flush();
     }
 
     /**
@@ -70,7 +79,9 @@ class Manager implements PoolInterface
      */
     public function deleteItems(array $keys)
     {
-
+        foreach ($keys as $key) {
+            $this->getItem($key)->delete();
+        }
     }
 
     /**

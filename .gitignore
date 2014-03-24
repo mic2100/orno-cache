@@ -3,3 +3,4 @@ composer.lock
 coverage/
 *.sublime-project
 *.sublime-workspace
+nbproject/

@@ -44,7 +44,7 @@ class Collection implements CollectionInterface
      */
     public function offsetExists($offset)
     {
-
+        return array_key_exists($offset, $this-items);
     }
 
     /**
@@ -54,7 +54,7 @@ class Collection implements CollectionInterface
      */
     public function offsetGet($offset)
     {
-
+        return $this->items[$offset];
     }
 
     /**
@@ -65,7 +65,8 @@ class Collection implements CollectionInterface
      */
     public function offsetSet($offset, Item $value)
     {
-
+        $this->items[$offset] = $value;
+        return $this;
     }
 
     /**
@@ -75,7 +76,8 @@ class Collection implements CollectionInterface
      */
     public function offsetUnset($offset)
     {
-
+        unset($this->items[$offset]);
+        return $this;
     }
 }
 

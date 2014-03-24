@@ -3,7 +3,7 @@
 namespace Orno\Cache;
 
 use Psr\Cache\ItemInterface;
-use Psr\Cache\InvalidArgumentException;
+use Orno\Cache\Adapter\AdapterInterface;
 
 /**
  * Item
@@ -12,6 +12,13 @@ use Psr\Cache\InvalidArgumentException;
  */
 class Item implements ItemInterface
 {
+    /**
+     * The adapter that will be used to cache the data
+     *
+     * @var Orno\Cache\Adapter\AdapterInterface
+     */
+    protected $adapter;
+
     /**
      * The key that will be used to save the data to the adapter
      *
@@ -27,6 +34,13 @@ class Item implements ItemInterface
     protected $value = null;
 
     /**
+     * Stores the time to live in seconds or a value of null for the adapter default
+     *
+     * @var null|int
+     */
+    protected $ttl = null;
+
+    /**
      * This is set to true so if the cache item is modified it can be saved
      *
      * @var boolean
@@ -37,10 +51,14 @@ class Item implements ItemInterface
      * Construct
      *
      * @param string $key
+     * @param \Orno\Cache\Adapter\AdapterInterface $adapter
      */
-    public function __construct($key)
+    public function __construct($key, AdapterInterface $adapter)
     {
         $this->key = $key;
+        $this->adapter = $adapter;
+
+        $this->value = $this->adapter->get($this->key);
     }
 
     /**
@@ -58,7 +76,7 @@ class Item implements ItemInterface
      */
     public function get()
     {
-
+        return $this->value;
     }
 
     /**
